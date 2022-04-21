@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Testla Client</title>
+    <style>
+      /* body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+      .gps_input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+      .gps_input:focus { outline: none; }
+      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+      #sensors { list-style-type: none; margin: 0; padding: 0; }
+      #sensors > li { padding: 0.5rem 1rem; }
+      #sensors > li:nth-child(odd) { background: #efefef; } */
+    </style>
+  </head>
+  <body>
+    <h3>Sensors</h3>
+    <ul id="sensors">
+      <li>left: <span id="left_sensor"></span></li>
+      <li>middle: <span id="middle_sensor"></span></li>
+      <li>right: <span id="right_sensor"></span></li>
+      <li>back: <span id="back_sensor"></span></li>
+    </ul>
+    <br>
+    <br>
+    <h3>GPS Destination</h3>
+    <form id="form" action="">
+      <label for="latitude">Latitude:</label><br>
+      <input class="gps_input" id="input_latitude"  name="latitude"  autocomplete="off" type="number"/><br>
+      <label for="longitude">Longitude:</label><br>
+      <input class="gps_input" id="input_longitude" name="longitude" autocomplete="off" type="number"/><br><br>
+      <button>Send</button>
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      var socket = io();
+
+      var sensors = document.getElementById('sensors');
+      var form = document.getElementById('form');
+      var input_latitude = document.getElementById('input_latitude');
+      var input_longitude = document.getElementById('input_longitude');
+
+      var left_sensor = document.getElementById('left_sensor');
+      var middle_sensor = document.getElementById('middle_sensor');
+      var right_sensor = document.getElementById('right_sensor');
+      var back_sensor = document.getElementById('back_sensor');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (input_latitude.value && input_longitude.value) {
+          socket.emit('gps', input_latitude.value + ',' + input_longitude.value);
+          input_latitude.value = '';
+          input_longitude.value = '';
+        }
+      });
+
+      socket.on('sensors', function(msg) {
+        let sensors = msg.toString().split(',');
+        if (sensors.length == 4) {
+          left_sensor.textContent = sensors[0];
+          middle_sensor.textContent = sensors[1];
+          right_sensor.textContent = sensors[2];
+          back_sensor.textContent = sensors[3];
+        }
+      });
+    </script>
+  </body>
+</html>

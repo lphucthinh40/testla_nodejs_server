@@ -1,4 +1,4 @@
-const http_port = process.env.PORT || 3000;
+const http_port = process.env.PORT || 80;
 const tcp_port = process.env.TCP_PORT || 8080;
 
 const net = require('net');

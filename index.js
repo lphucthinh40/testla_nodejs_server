@@ -1,4 +1,4 @@
-const http_port = process.env.PORT || 80;
+const http_port = process.env.PORT || 5000;
 const tcp_port = process.env.TCP_PORT || 8080;
 
 const net = require('net');
@@ -103,7 +103,7 @@ io.on('connection', (socket) => {
 
 
 HTTPserver.listen(http_port, () => {
-console.log('HTTP Server is running on port 3000');
+console.log('HTTP Server is running on port 5000');
 });
 
 function updateGPSData(data) {

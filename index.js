@@ -10,6 +10,9 @@ let sensor_middle = 0.0;
 let sensor_right = 0.0;
 let sensor_back = 0.0;
 
+let location_latitude = 0.0;
+let location_longitude = 0.0;
+
 let latitude = 123.4;
 let longitude = 110.9;
 let new_gps = false;
@@ -37,16 +40,21 @@ TCPserver.on('connection', function(sock) {
         try {
             console.log('DATA ' + sock.remoteAddress + ': ' + data + '---' + count);
             count += 1;
-            updateSensorData(data.toString());
-            io.emit('sensors', [sensor_left, sensor_middle, sensor_right, sensor_back].join(','));
-            // Write the data back to all the connected, the client will receive it as data from the server
-            sockets.forEach(function(sock, index, array) {
-                // sock.write(sock.remoteAddress + ':' + sock.remotePort + " said " + data + '\n');
-                if(new_gps) {
-                    sock.write('GPS_DEST:'+latitude+','+longitude);
-                    new_gps = false;
-                }
-            });
+            if (data.toString().includes("LOCATION")) {
+                updateLocationData(data.toString());
+                io.emit('location', [location_latitude, location_longitude].join(','));
+            } else {
+                updateSensorData(data.toString());
+                io.emit('sensors', [sensor_left, sensor_middle, sensor_right, sensor_back].join(','));
+                // Write the data back to all the connected, the client will receive it as data from the server
+                sockets.forEach(function(sock, index, array) {
+                    // sock.write(sock.remoteAddress + ':' + sock.remotePort + " said " + data + '\n');
+                    if(new_gps) {
+                        sock.write('GPS_DEST:'+latitude+','+longitude);
+                        new_gps = false;
+                    }
+                });
+            }
         } catch (error) {
             count = 0;
         }
@@ -82,6 +90,22 @@ function updateSensorData(data) {
     }
 }
 
+function updateLocationData(data) {
+    const strs = data.split(":");
+    if (strs.length == 2) {
+        const header = strs[0];
+        const body = strs[1];
+        if (header === "LOCATION") {
+            const location_data = body.split(",");
+            if (location_data.length == 2) {
+                location_latitude = parseFloat(location_data[0]);
+                location_longitude = parseFloat(location_data[1]);
+                console.log('latitude: ' + location_latitude + ' | longitude: ' + location_longitude);
+            }
+        }
+    }
+}
+
 // HTTP Server for communication with webclient
 
 app.get('/', (req, res) => {
@@ -97,7 +121,6 @@ io.on('connection', (socket) => {
     socket.on('gps', msg => {
       console.log('receive new gps coordinates: ' + msg);
       updateGPSData(msg.toString());
-      io.emit('chat message', msg);
     });
 });
 

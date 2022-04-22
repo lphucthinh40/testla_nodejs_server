@@ -24,6 +24,11 @@
       <li>back: <span id="back_sensor"></span></li>
     </ul>
     <br>
+    <h3>GPS Current Position</h3>
+    <ul id="location">
+      <li>lat: <span id="location_lat"></span></li>
+      <li>lon: <span id="location_long"></span></li>
+    </ul>
     <br>
     <h3>GPS Destination</h3>
     <form id="form" action="">
@@ -48,6 +53,9 @@
       var right_sensor = document.getElementById('right_sensor');
       var back_sensor = document.getElementById('back_sensor');
 
+      var location_lat = document.getElementById('location_lat');
+      var location_long = document.getElementById('location_long');
+
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         if (input_latitude.value && input_longitude.value) {
@@ -64,6 +72,14 @@
           middle_sensor.textContent = sensors[1];
           right_sensor.textContent = sensors[2];
           back_sensor.textContent = sensors[3];
+        }
+      });
+
+      socket.on('location', function(msg) {
+        let location = msg.toString().split(',');
+        if (location.length == 2) {
+          location_lat.textContent = location[0];
+          location_long.textContent = location[1];
         }
       });
     </script>

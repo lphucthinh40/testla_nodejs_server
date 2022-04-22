@@ -33,9 +33,9 @@
     <h3>GPS Destination</h3>
     <form id="form" action="">
       <label for="latitude">Latitude:</label><br>
-      <input class="gps_input" id="input_latitude"  name="latitude"  autocomplete="off" type="number"/><br>
+      <input class="gps_input" id="input_latitude"  name="latitude"  autocomplete="off" type="number" step="0.000001"/><br>
       <label for="longitude">Longitude:</label><br>
-      <input class="gps_input" id="input_longitude" name="longitude" autocomplete="off" type="number"/><br><br>
+      <input class="gps_input" id="input_longitude" name="longitude" autocomplete="off" type="number" step="0.000001"/><br><br>
       <button>Send</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>

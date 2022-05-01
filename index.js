@@ -13,6 +13,8 @@ let sensor_back = 0.0;
 let location_latitude = 0.0;
 let location_longitude = 0.0;
 
+let heading = 0;
+
 let latitude = 123.4;
 let longitude = 110.9;
 let new_gps = false;
@@ -43,7 +45,11 @@ TCPserver.on('connection', function(sock) {
             if (data.toString().includes("LOCATION")) {
                 updateLocationData(data.toString());
                 io.emit('location', [location_latitude, location_longitude].join(','));
-            } else {
+            } else if (data.toString().includes("HEADING")) {
+                updateHeadingData(data.toString());
+                io.emit('heading', heading);
+            }            
+            else {
                 updateSensorData(data.toString());
                 io.emit('sensors', [sensor_left, sensor_middle, sensor_right, sensor_back].join(','));
                 // Write the data back to all the connected, the client will receive it as data from the server
@@ -105,6 +111,19 @@ function updateLocationData(data) {
         }
     }
 }
+
+function updateHeadingData(data) {
+    const strs = data.split(":");
+    if (strs.length == 2) {
+        const header = strs[0];
+        const body = strs[1];
+        if (header === "HEADING") {
+            heading = parseInt(body);            
+            console.log('heading: ' + heading);
+        }
+    }
+}
+
 
 // HTTP Server for communication with webclient
 

@@ -42,25 +42,15 @@ TCPserver.on('connection', function(sock) {
         try {
             console.log('DATA ' + sock.remoteAddress + ': ' + data + '---' + count);
             count += 1;
-            if (data.toString().includes("LOCATION")) {
-                updateLocationData(data.toString());
-                io.emit('location', [location_latitude, location_longitude].join(','));
-            } else if (data.toString().includes("HEADING")) {
-                updateHeadingData(data.toString());
-                io.emit('heading', heading);
-            }            
-            else {
-                updateSensorData(data.toString());
-                io.emit('sensors', [sensor_left, sensor_middle, sensor_right, sensor_back].join(','));
-                // Write the data back to all the connected, the client will receive it as data from the server
-                sockets.forEach(function(sock, index, array) {
-                    // sock.write(sock.remoteAddress + ':' + sock.remotePort + " said " + data + '\n');
-                    if(new_gps) {
-                        sock.write('GPS_DEST:'+latitude+','+longitude);
-                        new_gps = false;
-                    }
-                });
-            }
+            updateData(data.toString());
+            // Write the data back to all the connected, the client will receive it as data from the server
+            sockets.forEach(function(sock, index, array) {
+                if(new_gps) {
+                    sock.write('GPS_DEST:'+latitude+','+longitude);
+                    new_gps = false;
+                }
+            });
+            // }
         } catch (error) {
             count = 0;
         }
@@ -78,52 +68,39 @@ TCPserver.on('connection', function(sock) {
     });
 });
 
-function updateSensorData(data) {
-    const strs = data.split(":");
-    if (strs.length == 2) {
-        const header = strs[0];
-        const body = strs[1];
-        if (header === "SENSORS") {
-            const sensor_data = body.split(",");
-            if (sensor_data.length == 4) {
-                sensor_left = parseFloat(sensor_data[0]);
-                sensor_middle = parseFloat(sensor_data[1]);
-                sensor_right = parseFloat(sensor_data[2]);
-                sensor_back = parseFloat(sensor_data[3]);
-                console.log('left: ' + sensor_left + ' | middle: ' + sensor_middle + ' | right: ' + sensor_right + ' | back: ' + sensor_back);
+function updateData(data) {
+    const messages = data.split(";");
+    messages.forEach((message) => { 
+        const strs = message.split(":");
+        if (strs.length == 2) {
+            const header = strs[0];
+            const body = strs[1];
+            if (header === "SENSORS") {
+                const sensor_data = body.split(",");
+                if (sensor_data.length == 4) {
+                    sensor_left = parseFloat(sensor_data[0]);
+                    sensor_middle = parseFloat(sensor_data[1]);
+                    sensor_right = parseFloat(sensor_data[2]);
+                    sensor_back = parseFloat(sensor_data[3]);
+                    console.log('left: ' + sensor_left + ' | middle: ' + sensor_middle + ' | right: ' + sensor_right + ' | back: ' + sensor_back);
+                    io.emit('sensors', [sensor_left, sensor_middle, sensor_right, sensor_back].join(','));
+                }
+            } else if (header == "LOCATION") {
+                const location_data = body.split(",");
+                if (location_data.length == 2) {
+                    location_latitude = parseFloat(location_data[0]);
+                    location_longitude = parseFloat(location_data[1]);
+                    console.log('latitude: ' + location_latitude + ' | longitude: ' + location_longitude);
+                    io.emit('location', [location_latitude, location_longitude].join(','));
+                }
+            } else if (header == "HEADING") {
+                heading = parseInt(body);            
+                console.log('heading: ' + heading);
+                io.emit('heading', heading);
             }
         }
-    }
+    });
 }
-
-function updateLocationData(data) {
-    const strs = data.split(":");
-    if (strs.length == 2) {
-        const header = strs[0];
-        const body = strs[1];
-        if (header === "LOCATION") {
-            const location_data = body.split(",");
-            if (location_data.length == 2) {
-                location_latitude = parseFloat(location_data[0]);
-                location_longitude = parseFloat(location_data[1]);
-                console.log('latitude: ' + location_latitude + ' | longitude: ' + location_longitude);
-            }
-        }
-    }
-}
-
-function updateHeadingData(data) {
-    const strs = data.split(":");
-    if (strs.length == 2) {
-        const header = strs[0];
-        const body = strs[1];
-        if (header === "HEADING") {
-            heading = parseInt(body);            
-            console.log('heading: ' + heading);
-        }
-    }
-}
-
 
 // HTTP Server for communication with webclient
 

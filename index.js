@@ -48,7 +48,7 @@ TCPserver.on('connection', function(sock) {
                 if(new_gps) {
                     sock.write('GPS_DEST:'+latitude+','+longitude);
                     console.log('Sent to server!');
-                    // new_gps = false;
+                    new_gps = false;
                 }
             // });
             // }

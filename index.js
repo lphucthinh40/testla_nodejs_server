@@ -36,7 +36,7 @@ let count = 0;
 
 TCPserver.on('connection', function(sock) {
     console.log('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort);
-    sockets.push(sock);
+    // sockets.push(sock);
     // sock.setKeepAlive(true,300000);
     sock.on('data', function(data) {
         try {
@@ -44,12 +44,13 @@ TCPserver.on('connection', function(sock) {
             count += 1;
             updateData(data.toString());
             // Write the data back to all the connected, the client will receive it as data from the server
-            sockets.forEach(function(sock, index, array) {
+            // sockets.forEach(function(sock, index, array) {
                 if(new_gps) {
                     sock.write('GPS_DEST:'+latitude+','+longitude);
-                    new_gps = false;
+                    console.log('Sent to server!');
+                    // new_gps = false;
                 }
-            });
+            // });
             // }
         } catch (error) {
             count = 0;

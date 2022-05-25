@@ -13,6 +13,9 @@ let sensor_back = 0.0;
 let location_latitude = 0.0;
 let location_longitude = 0.0;
 
+let steering_yaw = 0.0;
+let steering_velocity = 0.0;
+
 let heading = 0;
 
 let latitude = 123.4;
@@ -36,22 +39,21 @@ let count = 0;
 
 TCPserver.on('connection', function(sock) {
     console.log('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort);
-    // sockets.push(sock);
-    // sock.setKeepAlive(true,300000);
+    sockets.push(sock);
+    sock.setKeepAlive(true,300000);
     sock.on('data', function(data) {
         try {
             console.log('DATA ' + sock.remoteAddress + ': ' + data + '---' + count);
             count += 1;
             updateData(data.toString());
             // Write the data back to all the connected, the client will receive it as data from the server
-            // sockets.forEach(function(sock, index, array) {
+            sockets.forEach(function(sock, index, array) {
                 if(new_gps) {
                     sock.write('GPS_DEST:'+latitude+','+longitude);
                     console.log('Sent to server!');
                     new_gps = false;
                 }
-            // });
-            // }
+            });            
         } catch (error) {
             count = 0;
         }
@@ -98,6 +100,14 @@ function updateData(data) {
                 heading = parseInt(body);            
                 console.log('heading: ' + heading);
                 io.emit('heading', heading);
+            } else if (header == "STEERING") {
+                const steering_data = body.split(",");
+                if (steering_data.length == 2) {
+                    steering_yaw = parseFloat(steering_data[0]);
+                    steering_velocity = parseFloat(steering_data[1]);
+                    console.log('yaw: ' + steering_yaw + ' | velocity: ' + steering_velocity);
+                    io.emit('steering', [steering_yaw, steering_velocity].join(','));
+                }
             }
         }
     });
